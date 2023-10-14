@@ -22,7 +22,7 @@
   </table>
 </template>
 
-<script>
+<script lang="ts">
 // will be passing this child component the prop of "topGainers"
 // from the parent component TopGainersLosersList
 export default {

@@ -5,9 +5,28 @@ efficiently updates the DOM when changes happen.
 
 <!-- HTML markup for a vue component -->
 <template>
-  <div v-if="gainerLoserData">
-    <button @click="selectedTab = 'gainers'">Top Gainers</button>
-    <button @click="selectedTab = 'losers'">Top Losers</button>
+  <div v-if="gainerLoserData" class="container">
+    <div class="button-container">
+      <button
+        @click="selectedTab = 'gainers'"
+        :class="{
+          gainers: true,
+          active: selectedTab === 'gainers',
+        }"
+      >
+        Top Gainers
+      </button>
+
+      <button
+        @click="selectedTab = 'losers'"
+        :class="{
+          losers: true,
+          active: selectedTab === 'losers',
+        }"
+      >
+        Top Losers
+      </button>
+    </div>
 
     <TopGainersTable
       v-if="selectedTab === 'gainers'"
@@ -18,12 +37,17 @@ efficiently updates the DOM when changes happen.
       :topLosers="gainerLoserData.top_losers"
     />
   </div>
+  <div v-else>
+    <h1>Loading Gainers...</h1>
+    <LoadingSkeletonTable />
+  </div>
 </template>
 
 <!-- JS logic for the vue component -->
 <script lang="ts">
 import TopGainersTable from "../components/tables/TopGainersTable.vue";
 import TopLosersTable from "../components/tables/TopLosersTable.vue";
+import LoadingSkeletonTable from "../components/tables/LoadingTableSkeleton.vue";
 
 import { ref, onMounted, defineComponent } from "vue";
 
@@ -50,6 +74,7 @@ export default defineComponent({
   components: {
     TopGainersTable,
     TopLosersTable,
+    LoadingSkeletonTable,
   },
 
   // setup func is the entry point for using composition api inside
@@ -98,6 +123,6 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
-/* Add your styles here */
+<style lang="scss" scoped>
+@import "../components//tables/tableStyles/TopGainersLosersList.scss";
 </style>
