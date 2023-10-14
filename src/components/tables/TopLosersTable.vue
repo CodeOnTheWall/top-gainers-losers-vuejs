@@ -27,3 +27,7 @@ export default {
   props: ["topLosers"],
 };
 </script>
+
+<style lang="scss" scoped>
+@import "../tables/tableStyles/TopLosersTable.scss";
+</style>
