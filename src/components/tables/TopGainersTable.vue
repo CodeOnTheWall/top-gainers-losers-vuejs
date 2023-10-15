@@ -43,6 +43,7 @@
 </template>
 
 <script lang="ts">
+import { ref, computed } from "vue";
 import { ArrowUpDown } from "lucide-vue-next";
 
 export default {
@@ -52,96 +53,99 @@ export default {
 
   props: ["topGainers"],
 
-  data() {
-    return {
-      // 1 for ascending, -1 for descending
-      sortOrder: 1,
-      // Column to sort by
-      sortBy: "",
-    };
-  },
-  // computed values are cached based on their reactive data
-  // so instead of calculating the max% every getChangePercentageColor
-  // 'round' I can just calculate it once and use it in my method,
-  // which is better for performance, and only re calculate when
-  // topGainers changes
-  computed: {
-    sortedTopGainers() {
-      // avoid changing original array by ... spreading
+  setup(props) {
+    // REACTIVE DATA
+    // 1 for ascending, -1 for descending
+    const sortOrder = ref(1);
+    // Column to sort by
+    const sortBy = ref("");
+    // END REACTIVE DATA
+
+    // COMPUTED DATA
+    const sortedTopGainers = computed(() => {
+      // avoid changing original array by ... spreading out the props
+      // received (topGainers)
       // because we have sortBy and sortOrder here, whenever these
       // values change, vue will auto re compute these values
-      return [...this.topGainers].sort((a, b) => {
-        // wont be any sortBy on initial render, hence will render in the
-        // sorting that its already in
-        // sending a and b to setSortableValue to convert to num to be able
-        // to compare them
-        const aValue = this.getSortableValue(a, this.sortBy);
-        const bValue = this.getSortableValue(b, this.sortBy);
-        console.log("aValue", aValue, "bValue", bValue);
+      return [...props.topGainers].sort((a, b) => {
+        // sending values to getSortableValue func to convert to nums
+        const aValue = getSortableValue(a, sortBy.value);
+        const bValue = getSortableValue(b, sortBy.value);
 
+        // for now is nan/null since no sortBy, hence first render
+        // will render in given order, which is already ascending based
+        // on api data array
         // Determine the order based on sortOrder (1 or -1)
-        return this.sortOrder * (aValue - bValue);
+        // default now is b - a (desc - most max - most min)
+        return sortOrder.value * (aValue - bValue);
       });
-    },
+    });
 
-    maxValues() {
+    // computed values are cached based on their reactive data
+    // so instead of calculating the max% every getChangePercentageColor
+    // 'round' I can just calculate it once and use it in my method,
+    // which is better for performance, and only re calculate when
+    // topGainers changes
+    const maxValues = computed(() => {
       return {
-        // [type] will be the various names such as change_amount
+        // converting all from strings to nums
         change_amount: Math.max(
-          ...this.topGainers.map((gainer) => parseFloat(gainer.change_amount))
+          ...props.topGainers.map((gainer) => parseFloat(gainer.change_amount))
         ),
-        // reminder that 'this' in vue 3 is used to access data properties,
-        // computed properties, and methods. since topGainers is a passed
-        // in prop, i access via this. adding the spread... opp since
-        // math.max expects ind args, not an array of objects
+        // this one requires removing the % in the string as well
         change_percentage: Math.max(
-          ...this.topGainers.map((gainer) =>
+          ...props.topGainers.map((gainer) =>
             parseFloat(gainer.change_percentage.replace("%", ""))
           )
         ),
         volume: Math.max(
-          ...this.topGainers.map((gainer) => parseFloat(gainer.volume))
+          ...props.topGainers.map((gainer) => parseFloat(gainer.volume))
         ),
       };
-    },
-  },
-  methods: {
-    sortTable(column) {
-      // sortOrder can be 1 or -1, since we havnt clicked anything yet,
-      // column === this.sortBy will be false, so first click will make
-      // this.sortOrder 1, on second click, since sortBy now has a value,
-      // column === this.sortBy will be true, and the ternery opp
-      // (-this.sortOrder) will make this.sortOrder -1
-      this.sortOrder = column === this.sortBy ? -this.sortOrder : 1;
-      this.sortBy = column;
-    },
+    });
+    // END COMPUTED DATA
+
+    // METHODS/FUNCTIONS
+    // sortOrder can be 1 or -1, since we havnt clicked anything yet (no value
+    // inside sortBy)
+    // column === sortBy.value will be false, so first click will make
+    // sortOrder.value 1, on second click, since sortBy now has a value,
+    // column === this.sortBy will be true, and the ternary opp ?
+    // will do this: -sortOrder.value
+    function sortTable(column) {
+      sortOrder.value = column === sortBy.value ? -sortOrder.value : 1;
+      sortBy.value = column;
+    }
+
     // func that gets clicked/ran first, passed "change_percentage" into
     // above func of sortTable
-    sortChangePercentage() {
-      this.sortTable("change_percentage");
-    },
-    // item is the object, column is i.e. change_percentage
+    function sortChangePercentage() {
+      sortTable("change_percentage");
+    }
+
+    // item is the object with all the properties (change_percentage, change amount,
+    // ticker etc), column is i.e. change_percentage
     // receiving data from sortedTopGainers to be converted to num since
     // the properties inside the item object are all strings (top_gainers)
-    getSortableValue(item, column) {
-      // console.log(item);
+    function getSortableValue(item, column) {
       // extracting the value from the item object with same name as column
       // i.e. extracting the value that is under the property/column called
       // change_percentage
+      // then converting to num, if column isnt change_percentage, then we can skip
+      // the step of removing the % from the string, and directly parse it
       const value = item[column];
-      // some columns dont have a % to remove to convert to num, hence the
-      // ternary opp
-      // this columnValue becomes aValue and bValue
       return column === "change_percentage"
         ? parseFloat(value.replace("%", ""))
         : parseFloat(value);
-    },
+    }
 
-    getChangePercentageColor(value, type) {
+    function getChangePercentageColor(value, type) {
       const numericValue = parseFloat(value);
-      const maxValue = this.maxValues[type];
+      const maxValue = maxValues.value[type];
+
       // linear interpolation (lerp) function
-      // so that we are always between rgba(0, 94, 32, 0.5-1)
+      // so that we are always between rgba(0, 94, 32, 0.5) and
+      // rgba(0, 94, 32, 1)
       // purpose being so that arrays of objects that have significant
       // variance such as volume, that the color% can be scaled properly
 
@@ -152,15 +156,23 @@ export default {
       // the min being rgba(0, 94, 32, 0.5)
 
       // Calculate the alpha value based on the numeric value and the max value
+      // highest value would get alpha of 1, while lowest in the respective data set
+      // would have an alpha min of 0.5
       const alpha = (numericValue / maxValue) * 0.5 + 0.5;
 
-      // Construct the RGBA color with the base green and adjusted alpha
       const dynamicColor = `rgba(0, 94, 32, ${alpha})`;
 
       return {
         backgroundColor: dynamicColor,
       };
-    },
+    }
+    // END METHODS/FUNCTIONS
+
+    return {
+      sortedTopGainers,
+      sortChangePercentage,
+      getChangePercentageColor,
+    };
   },
 };
 </script>

@@ -1,5 +1,6 @@
 <!-- SkeletonTable.vue -->
 <template>
+  <h1>Loading Gainers and Losers...</h1>
   <table>
     <thead>
       <tr>

@@ -38,7 +38,6 @@ efficiently updates the DOM when changes happen.
     />
   </div>
   <div v-else>
-    <h1>Loading Gainers...</h1>
     <LoadingSkeletonTable />
   </div>
 </template>

@@ -43,6 +43,7 @@
 </template>
 
 <script lang="ts">
+import { ref, computed } from "vue";
 import { ArrowUpDown } from "lucide-vue-next";
 
 export default {
@@ -51,82 +52,110 @@ export default {
   },
   props: ["topLosers"],
 
-  data() {
-    return {
-      // 1 for ascending, -1 for descending
-      sortOrder: 1,
-      // Column to sort by
-      sortBy: "",
-    };
-  },
+  setup(props) {
+    // REACTIVE DATA
+    // 1 for ascending, -1 for descending
+    const sortOrder = ref(1);
+    // Column to sort by
+    // initial value will be sorted as the array already is
+    const sortBy = ref("");
+    // END REACTIVE DATA
 
-  computed: {
-    sortedTopLosers() {
-      // avoid changing original array by ... spreading
-      // because we have sortBy and sortOrder here, whenever these
-      // values change, vue will auto re compute these values
-      return [...this.topLosers].sort((a, b) => {
-        const aValue = this.getSortableValue(a, this.sortBy);
-        const bValue = this.getSortableValue(b, this.sortBy);
+    // COMPUTED DATA
+    const sortedTopLosers = computed(() => {
+      return [...props.topLosers].sort((a, b) => {
+        const aValue = getSortableValue(a, sortBy.value);
+        const bValue = getSortableValue(b, sortBy.value);
 
-        // Determine the order based on sortOrder (1 or -1)
-        return this.sortOrder * (aValue - bValue);
+        // fixed double click issue by changing from a -b to b - a,
+        // since the first click would be going to the order its
+        // already in, hence the updownarrow took 2 clicks, this
+        // fixes that issue
+        // a-b is asc, b-a is desc
+        // right now default is ascending (most min to most max)
+        // so we have to change to desc (most max/least negative to most min/most negative)
+        return sortOrder.value * (bValue - aValue);
       });
-    },
+    });
 
-    maxValues() {
+    const maxValues = computed(() => {
       return {
-        // bottom 2 values have negative numbers, so i have to find
-        // the min, whereas volume can stay max since were not finding
-        // the highest negative number
+        // converting all from strings to nums
         change_amount: Math.min(
-          ...this.topLosers.map((loser) => parseFloat(loser.change_amount))
+          ...props.topLosers.map((loser) => parseFloat(loser.change_amount))
         ),
+        // this one requires removing the % in the string as well
         change_percentage: Math.min(
-          ...this.topLosers.map((loser) =>
+          ...props.topLosers.map((loser) =>
             parseFloat(loser.change_percentage.replace("%", ""))
           )
         ),
         volume: Math.max(
-          ...this.topLosers.map((loser) => parseFloat(loser.volume))
+          ...props.topLosers.map((loser) => parseFloat(loser.volume))
         ),
       };
-    },
-  },
-  methods: {
-    sortTable(column) {
-      this.sortOrder = column === this.sortBy ? -this.sortOrder : 1;
-      this.sortBy = column;
-    },
+    });
+    // END COMPUTED DATA
 
-    sortChangePercentage() {
-      this.sortTable("change_percentage");
-    },
-    getSortableValue(item, column) {
+    // METHODS/FUNCTIONS
+    function sortTable(column) {
+      sortOrder.value = column === sortBy.value ? -sortOrder.value : 1;
+      sortBy.value = column;
+    }
+
+    function sortChangePercentage() {
+      sortTable("change_percentage");
+    }
+
+    function getSortableValue(item, column) {
       const value = item[column];
       return column === "change_percentage"
         ? parseFloat(value.replace("%", ""))
         : parseFloat(value);
-    },
+    }
 
-    getChangePercentageColor(value, type) {
-      const numericValue = parseFloat(value);
-      const maxValue = Math.abs(this.maxValues[type]);
+    function getChangePercentageColor(value, type) {
+      if (type === "volume") {
+        const numericValue = parseFloat(value);
+        const maxValue = maxValues.value[type];
 
-      // Apply logarithmic scaling
-      const scaledValue =
-        Math.log10(Math.abs(numericValue) + 1) / Math.log10(maxValue + 1);
+        const alpha = (numericValue / maxValue) * 0.5 + 0.5;
 
-      // Calculate alpha based on the scaled value
-      const alpha = scaledValue;
+        const dynamicColor = `rgba(251, 80, 87, ${alpha})`;
 
-      // Construct the RGBA color with the base red and adjusted alpha
-      const dynamicColor = `rgba(251, 80, 87, ${alpha * 0.7})`;
+        return {
+          backgroundColor: dynamicColor,
+        };
+      } else {
+        const numericValue = parseFloat(value);
+        // find min (most negative) and max
+        const minValue = Math.min(
+          ...props.topLosers.map((loser) => parseFloat(loser[type]))
+        );
+        const maxValue = Math.max(
+          ...props.topLosers.map((loser) => parseFloat(loser[type]))
+        );
+        // console.log(numericValue, maxValue, minValue);
 
-      return {
-        backgroundColor: dynamicColor,
-      };
-    },
+        const normalizedValue =
+          (maxValue - numericValue) / (maxValue - minValue);
+        const alpha = normalizedValue * 0.5 + 0.5;
+
+        const dynamicColor = `rgba(251, 80, 87, ${alpha})`;
+
+        return {
+          backgroundColor: dynamicColor,
+        };
+      }
+    }
+
+    // END METHODS/FUNCTIONS
+
+    return {
+      sortedTopLosers,
+      sortChangePercentage,
+      getChangePercentageColor,
+    };
   },
 };
 </script>
