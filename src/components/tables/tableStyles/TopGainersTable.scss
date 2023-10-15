@@ -11,11 +11,12 @@ table {
 th,
 td {
   border: 1px solid #ddd;
-  padding: 10px; // Adjust padding as needed
-  text-align: center; // Center the text
+  padding: 10px;
+  text-align: center;
 }
 
 th {
-  background-color: #005e20; // Stock market loss red
+  background-color: #005e20;
   color: white;
+  text-align: center;
 }

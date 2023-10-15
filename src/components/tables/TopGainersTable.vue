@@ -6,12 +6,14 @@
         <th>Ticker</th>
         <th>Price</th>
         <th>Change Amount</th>
-        <th>Change Percentage</th>
+        <th @click="sortChangePercentage">
+          % Change Percentage <ArrowUpDown />
+        </th>
         <th>Volume</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="gainer in topGainers" :key="gainer.ticker">
+      <tr v-for="gainer in sortedTopGainers" :key="gainer.ticker">
         <td>{{ gainer.ticker }}</td>
         <td>{{ gainer.price }}</td>
         <td
@@ -40,14 +42,42 @@
 </template>
 
 <script lang="ts">
+import { ArrowUpDown } from "lucide-vue-next";
+
 export default {
+  components: {
+    ArrowUpDown,
+  },
+
   props: ["topGainers"],
+
+  data() {
+    return {
+      // 1 for ascending, -1 for descending
+      sortOrder: 1,
+      // Column to sort by
+      sortBy: "",
+    };
+  },
   // computed values are cached based on their reactive data
   // so instead of calculating the max% every getChangePercentageColor
   // 'round' I can just calculate it once and use it in my method,
   // which is better for performance, and only re calculate when
   // topGainers changes
   computed: {
+    sortedTopGainers() {
+      // avoid changing original array by ... spreading
+      // because we have sortBy and sortOrder here, whenever these
+      // values change, vue will auto re compute these values
+      return [...this.topGainers].sort((a, b) => {
+        const aValue = this.getSortableValue(a, this.sortBy);
+        const bValue = this.getSortableValue(b, this.sortBy);
+
+        // Determine the order based on sortOrder (1 or -1)
+        return this.sortOrder * (aValue - bValue);
+      });
+    },
+
     maxValues() {
       return {
         // [type] will be the various names such as change_amount
@@ -70,6 +100,27 @@ export default {
     },
   },
   methods: {
+    sortTable(column) {
+      // sortOrder can be 1 or -1, since we havnt clicked anything yet,
+      // column === this.sortBy will be false, so first click will make
+      // this.sortOrder 1, on second click, since sortBy now has a value,
+      // column === this.sortBy will be true, and the ternery opp
+      // (-this.sortOrder) will make this.sortOrder -1
+      this.sortOrder = column === this.sortBy ? -this.sortOrder : 1;
+      this.sortBy = column;
+    },
+    // func that gets clicked/ran first, passed "change_percentage" into
+    // above func of sortTable
+    sortChangePercentage() {
+      this.sortTable("change_percentage");
+    },
+    getSortableValue(item, column) {
+      const value = item[column];
+      return column === "change_percentage"
+        ? parseFloat(value.replace("%", ""))
+        : value;
+    },
+
     getChangePercentageColor(value, type) {
       // Taking in the gainer value, converting to a number based on the type
       const numericValue = parseFloat(value);
@@ -79,7 +130,7 @@ export default {
 
       // Construct the RGBA color with the base green and adjusted alpha
       // alpha is level of transparency or opacity
-      const dynamicColor = `rgba(0, 94, 32, ${alpha})`;
+      const dynamicColor = `rgba(0, 94, 32, ${alpha * 0.7})`;
 
       return {
         backgroundColor: dynamicColor, // Set the dynamic background color

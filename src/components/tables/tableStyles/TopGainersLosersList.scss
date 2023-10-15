@@ -16,7 +16,7 @@
       border: none;
       // adding this so that the layout doesnt shift on a button being active
       // since on active we add 2px  to the border bottom
-      border-bottom: 2px solid white;
+      border-bottom: 4px solid white;
       cursor: pointer;
       // Add border-radius for rounded corners
       border-radius: 8px;
@@ -32,7 +32,7 @@
 
         &.active {
           background-color: #5ca869; // Dark green
-          border-bottom: 2px solid #005e20; // Dark green border bottom
+          border-bottom: 4px solid #005e20; // Dark green border bottom
         }
       }
 
@@ -41,7 +41,7 @@
 
         &.active {
           background-color: #e06666; // Dark red
-          border-bottom: 2px solid #8b0000; // Dark red border bottom
+          border-bottom: 4px solid #8b0000; // Dark red border bottom
         }
       }
     }
