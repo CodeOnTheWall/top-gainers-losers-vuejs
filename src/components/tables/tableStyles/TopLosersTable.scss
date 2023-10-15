@@ -19,3 +19,17 @@ th {
   background-color: #fb5057; // Stock market loss red
   color: white;
 }
+
+.th-with-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.th-with-flex > span {
+  flex: 1;
+}
+
+.th-with-flex > * {
+  margin-left: 4px;
+}

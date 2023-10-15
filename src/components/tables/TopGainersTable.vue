@@ -6,8 +6,9 @@
         <th>Ticker</th>
         <th>Price</th>
         <th>Change Amount</th>
-        <th @click="sortChangePercentage">
-          % Change Percentage <ArrowUpDown />
+        <th @click="sortChangePercentage" class="th-with-flex">
+          <span>% Change Percentage</span>
+          <ArrowUpDown />
         </th>
         <th>Volume</th>
       </tr>
@@ -70,8 +71,13 @@ export default {
       // because we have sortBy and sortOrder here, whenever these
       // values change, vue will auto re compute these values
       return [...this.topGainers].sort((a, b) => {
+        // wont be any sortBy on initial render, hence will render in the
+        // sorting that its already in
+        // sending a and b to setSortableValue to convert to num to be able
+        // to compare them
         const aValue = this.getSortableValue(a, this.sortBy);
         const bValue = this.getSortableValue(b, this.sortBy);
+        console.log("aValue", aValue, "bValue", bValue);
 
         // Determine the order based on sortOrder (1 or -1)
         return this.sortOrder * (aValue - bValue);
@@ -114,26 +120,45 @@ export default {
     sortChangePercentage() {
       this.sortTable("change_percentage");
     },
+    // item is the object, column is i.e. change_percentage
+    // receiving data from sortedTopGainers to be converted to num since
+    // the properties inside the item object are all strings (top_gainers)
     getSortableValue(item, column) {
+      // console.log(item);
+      // extracting the value from the item object with same name as column
+      // i.e. extracting the value that is under the property/column called
+      // change_percentage
       const value = item[column];
+      // some columns dont have a % to remove to convert to num, hence the
+      // ternary opp
+      // this columnValue becomes aValue and bValue
       return column === "change_percentage"
         ? parseFloat(value.replace("%", ""))
-        : value;
+        : parseFloat(value);
     },
 
     getChangePercentageColor(value, type) {
-      // Taking in the gainer value, converting to a number based on the type
       const numericValue = parseFloat(value);
+      const maxValue = this.maxValues[type];
+      // linear interpolation (lerp) function
+      // so that we are always between rgba(0, 94, 32, 0.5-1)
+      // purpose being so that arrays of objects that have significant
+      // variance such as volume, that the color% can be scaled properly
 
-      // Calculate alpha based on the numeric value and the max value for the type
-      const alpha = numericValue / this.maxValues[type];
+      // alpha calculated based on the ratio of the numericValue to maxValue
+      // which is a linear interpolation. this is to make it so
+      // the color will be evenly distributed between the minimum and maximum
+      // colors, regardless of the actual values.
+      // the min being rgba(0, 94, 32, 0.5)
+
+      // Calculate the alpha value based on the numeric value and the max value
+      const alpha = (numericValue / maxValue) * 0.5 + 0.5;
 
       // Construct the RGBA color with the base green and adjusted alpha
-      // alpha is level of transparency or opacity
-      const dynamicColor = `rgba(0, 94, 32, ${alpha * 0.7})`;
+      const dynamicColor = `rgba(0, 94, 32, ${alpha})`;
 
       return {
-        backgroundColor: dynamicColor, // Set the dynamic background color
+        backgroundColor: dynamicColor,
       };
     },
   },

@@ -20,3 +20,17 @@ th {
   color: white;
   text-align: center;
 }
+
+.th-with-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.th-with-flex > span {
+  flex: 1;
+}
+
+.th-with-flex > * {
+  margin-left: 4px;
+}

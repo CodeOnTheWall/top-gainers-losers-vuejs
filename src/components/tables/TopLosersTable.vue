@@ -6,7 +6,7 @@
         <th>Ticker</th>
         <th>Price</th>
         <th>Change Amount</th>
-        <th @click="sortChangePercentage">
+        <th @click="sortChangePercentage" class="th-with-flex">
           % Change Percentage
           <ArrowUpDown />
         </th>
@@ -106,19 +106,22 @@ export default {
       const value = item[column];
       return column === "change_percentage"
         ? parseFloat(value.replace("%", ""))
-        : value;
+        : parseFloat(value);
     },
 
     getChangePercentageColor(value, type) {
       const numericValue = parseFloat(value);
+      const maxValue = Math.abs(this.maxValues[type]);
 
-      // reminder that type are the names inside the computed maxValues
-      const alpha = Math.abs(numericValue) / Math.abs(this.maxValues[type]);
+      // Apply logarithmic scaling
+      const scaledValue =
+        Math.log10(Math.abs(numericValue) + 1) / Math.log10(maxValue + 1);
 
-      // because we still need the absolute number (i.e. -5 is 5) for the alpha
-      // we first Math.abs above the value only for the purpose of styling
-      // the opagueness
-      const dynamicColor = `rgba(251, 80, 87, ${alpha})`;
+      // Calculate alpha based on the scaled value
+      const alpha = scaledValue;
+
+      // Construct the RGBA color with the base red and adjusted alpha
+      const dynamicColor = `rgba(251, 80, 87, ${alpha * 0.7})`;
 
       return {
         backgroundColor: dynamicColor,
