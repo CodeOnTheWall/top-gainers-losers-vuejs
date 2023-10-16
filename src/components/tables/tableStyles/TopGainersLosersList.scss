@@ -7,8 +7,46 @@
 
   .button-container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
+
+    h1 {
+      font-size: 34px;
+      margin-bottom: 20px;
+      position: relative;
+
+      &:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 4px;
+        background: linear-gradient(
+          to right,
+          rgba(0, 94, 32, 1),
+          rgba(251, 80, 87, 1)
+        );
+        transform-origin: 0 50%;
+        transform: scaleX(1);
+        transition: transform 0.3s ease-in-out 1s;
+      }
+
+      span {
+        display: inline-block;
+        position: relative;
+      }
+
+      span.highlight {
+        color: rgba(0, 94, 32, 1); // Green for "G"
+        transition: transform 0.3s ease-in-out;
+      }
+
+      span.loss {
+        color: rgba(251, 80, 87, 1); // Red for "L"
+      }
+    }
 
     button {
       margin-right: 10px;

@@ -1,16 +1,32 @@
 <!-- TopLosersTable.vue -->
 <template>
+  <input
+    class="search-input"
+    v-model="searchTerm"
+    placeholder="Search by Ticker"
+  />
   <table>
     <thead>
       <tr>
         <th>Ticker</th>
         <th>Price</th>
-        <th>Change Amount</th>
-        <th @click="sortChangePercentage" class="th-with-flex">
-          % Change Percentage
-          <ArrowUpDown />
+        <th @click="() => handleSort('change_amount')">
+          <div class="th-with-flex">
+            Change Amount
+            <ArrowUpDown />
+          </div>
         </th>
-        <th>Volume</th>
+        <th @click="() => handleSort('change_percentage')">
+          <div class="th-with-flex">
+            <span>% Change Percentage</span> <ArrowUpDown />
+          </div>
+        </th>
+        <th @click="() => handleSort('volume')">
+          <div class="th-with-flex">
+            Volume
+            <ArrowUpDown />
+          </div>
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -54,6 +70,7 @@ export default {
 
   setup(props) {
     // REACTIVE DATA
+    const searchTerm = ref("");
     // 1 for ascending, -1 for descending
     const sortOrder = ref(1);
     // Column to sort by
@@ -62,8 +79,19 @@ export default {
     // END REACTIVE DATA
 
     // COMPUTED DATA
+    const filteredTopLosers = computed(() => {
+      const term = searchTerm.value.toLowerCase();
+      return sortedTopLosers.value.filter((loser) =>
+        loser.ticker.toLowerCase().includes(term)
+      );
+    });
+
     const sortedTopLosers = computed(() => {
-      return [...props.topLosers].sort((a, b) => {
+      let losers = props.topLosers.filter((loser) =>
+        loser.ticker.toLowerCase().includes(searchTerm.value.toLowerCase())
+      );
+
+      return losers.sort((a, b) => {
         const aValue = getSortableValue(a, sortBy.value);
         const bValue = getSortableValue(b, sortBy.value);
 
@@ -103,8 +131,15 @@ export default {
       sortBy.value = column;
     }
 
-    function sortChangePercentage() {
-      sortTable("change_percentage");
+    // function that kicks off the sorting
+    function handleSort(column) {
+      switch (column) {
+        case "change_amount":
+        case "volume":
+        case "change_percentage":
+          sortTable(column);
+          break;
+      }
     }
 
     function getSortableValue(item, column) {
@@ -152,8 +187,10 @@ export default {
     // END METHODS/FUNCTIONS
 
     return {
+      searchTerm,
+      filteredTopLosers,
       sortedTopLosers,
-      sortChangePercentage,
+      handleSort,
       getChangePercentageColor,
     };
   },

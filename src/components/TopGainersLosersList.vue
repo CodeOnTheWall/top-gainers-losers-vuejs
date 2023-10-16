@@ -7,25 +7,31 @@ efficiently updates the DOM when changes happen.
 <template>
   <div v-if="gainerLoserData" class="container">
     <div class="button-container">
-      <button
-        @click="selectedTab = 'gainers'"
-        :class="{
-          gainers: true,
-          active: selectedTab === 'gainers',
-        }"
-      >
-        Top Gainers
-      </button>
+      <h1>
+        Top <span class="highlight">G</span>ainers and
+        <span class="loss">L</span>osers of US Equities
+      </h1>
+      <div>
+        <button
+          @click="selectedTab = 'gainers'"
+          :class="{
+            gainers: true,
+            active: selectedTab === 'gainers',
+          }"
+        >
+          Top Gainers
+        </button>
 
-      <button
-        @click="selectedTab = 'losers'"
-        :class="{
-          losers: true,
-          active: selectedTab === 'losers',
-        }"
-      >
-        Top Losers
-      </button>
+        <button
+          @click="selectedTab = 'losers'"
+          :class="{
+            losers: true,
+            active: selectedTab === 'losers',
+          }"
+        >
+          Top Losers
+        </button>
+      </div>
     </div>
 
     <TopGainersTable
@@ -48,7 +54,7 @@ import TopGainersTable from "../components/tables/TopGainersTable.vue";
 import TopLosersTable from "../components/tables/TopLosersTable.vue";
 import LoadingSkeletonTable from "../components/tables/LoadingTableSkeleton.vue";
 
-import { ref, onMounted, defineComponent } from "vue";
+import { ref, onMounted, defineComponent, watchEffect, provide } from "vue";
 
 interface Gainer {
   ticker: string;
@@ -114,6 +120,15 @@ export default defineComponent({
     // to run when the component is loaded, like fetching data from an
     // API. takes a callback func which is executed after component is mounted
     onMounted(fetchData);
+
+    // Watch for changes in selectedTab and provide it to parent
+    // where it will be 'injected'
+    // feature to be added but running out of time and not getting it to
+    // work just yet with adding background color to body based on if
+    // selectedTab is gainers or losers
+    // watchEffect(() => {
+    //   provide("selectedTab", selectedTab.value);
+    // });
 
     // whatever is returned from the setup func is exposed to be consumed
     // inside the template
