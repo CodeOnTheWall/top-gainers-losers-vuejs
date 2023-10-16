@@ -54,7 +54,7 @@ import TopGainersTable from "../components/tables/TopGainersTable.vue";
 import TopLosersTable from "../components/tables/TopLosersTable.vue";
 import LoadingSkeletonTable from "../components/tables/LoadingTableSkeleton.vue";
 
-import { ref, onMounted, defineComponent, watchEffect, provide } from "vue";
+import { ref, onMounted, defineComponent } from "vue";
 
 interface Gainer {
   ticker: string;

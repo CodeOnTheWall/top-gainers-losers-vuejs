@@ -1,13 +1,15 @@
+/* Table Styles */
 table {
   width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
   font-family: Arial, sans-serif;
-  border-radius: 8px; // Add rounded corners
-  overflow: hidden; // Ensure rounded corners are visible
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); // Add a subtle box shadow
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* Input Styles */
 .search-input {
   margin-top: 20px;
   font-size: 16px;
@@ -28,18 +30,45 @@ table {
   }
 }
 
+/* Table Header and Cell Styles */
 th,
 td {
   border: 1px solid #ddd;
-  padding: 10px; // Adjust padding as needed
-  text-align: center; // Center the text
+  padding: 10px;
+  text-align: center;
 }
 
+/* Header Styles */
 th {
-  background-color: #fb5057; // Stock market loss red
+  background-color: #fb5057;
   color: white;
+  text-align: center;
 }
 
+/* Apply cursor: pointer only to 3rd, 4th, and 5th th elements */
+th:nth-child(3),
+th:nth-child(4),
+th:nth-child(5) {
+  cursor: pointer;
+}
+
+tr:hover {
+  background-color: #e0e0e0;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  table {
+    overflow-x: auto;
+  }
+}
+
+/* Subtle Box Shadow for Rows */
+tr {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Additional Flex Styles for Header */
 .th-with-flex {
   display: flex;
   align-items: center;
