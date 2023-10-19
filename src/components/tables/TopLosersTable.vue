@@ -76,12 +76,6 @@ const sortBy = ref("");
 // END REACTIVE DATA
 
 // COMPUTED DATA
-const filteredTopLosers = computed(() => {
-  const term = searchTerm.value.toLowerCase();
-  return sortedTopLosers.value.filter((loser) =>
-    loser.ticker.toLowerCase().includes(term)
-  );
-});
 
 const sortedTopLosers = computed(() => {
   let losers = props.topLosers.filter((loser) =>

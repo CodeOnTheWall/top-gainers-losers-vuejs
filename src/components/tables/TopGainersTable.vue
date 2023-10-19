@@ -75,12 +75,6 @@ const sortBy = ref("");
 // END REACTIVE DATA
 
 // COMPUTED DATA
-const filteredTopGainers = computed(() => {
-  const term = searchTerm.value.toLowerCase();
-  return sortedTopGainers.value.filter((gainer) =>
-    gainer.ticker.toLowerCase().includes(term)
-  );
-});
 
 const sortedTopGainers = computed(() => {
   // filter the topGainers data by searchTerm
